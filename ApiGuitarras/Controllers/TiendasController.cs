@@ -37,10 +37,10 @@ namespace ApiGuitarras.Controllers
         {
             var existeGuitarra = await dbContext.Guitarras.AnyAsync(x => x.Id == tienda.Id);
 
-            //if (!existeGuitarra)
-            //{
-                //return BadRequest($"No existe la guitarra con el ID: {tienda.Id}");
-            //}
+           if (!existeGuitarra)
+            {
+                return BadRequest($"No existe la guitarra con el ID: {tienda.Id}");
+            }
 
             dbContext.Add(tienda);
             await dbContext.SaveChangesAsync();
