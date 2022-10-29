@@ -16,15 +16,35 @@ namespace ApiGuitarras.Controllers
             this.dbContext = dbContext;
         }
 
-        [HttpGet]
+        [HttpGet("listadoGuitarras")]
         public async Task<ActionResult<List<Guitarra>>> Get()
         {
             return await dbContext.Guitarras.Include(x => x.Tiendas).ToListAsync();
 
         }
 
-        [HttpPost]
+        [HttpGet("primerGuitarra")]
+        public async Task<ActionResult<Guitarra>> primerGuitarra()
+        {
+            return await dbContext.Guitarras.FirstOrDefaultAsync();
+        }
 
+        
+
+        [HttpGet("{id:int}")]
+        public async Task<ActionResult<Guitarra>> Get(int id)
+        {
+            var guitarra = await dbContext.Guitarras.FirstOrDefaultAsync(x => x.Id == id);
+
+            if(guitarra == null)
+            {
+                return NotFound();
+            }
+
+            return guitarra;
+        }
+        
+        [HttpPost]
         public async Task<ActionResult> Post(Guitarra guitarra)
         {
             dbContext.Add(guitarra);
