@@ -35,11 +35,11 @@ namespace ApiGuitarras.Controllers
 
         public async Task<ActionResult> Post(Tienda tienda)
         {
-            var existeGuitarra = await dbContext.Guitarras.AnyAsync(x => x.Id == tienda.Id);
+            var existeTiendaMismoNombre = await dbContext.Tiendas.AnyAsync(x => x.Nombre == tienda.Nombre);
 
-           if (!existeGuitarra)
+            if (existeTiendaMismoNombre)
             {
-                return BadRequest($"No existe la guitarra con el ID: {tienda.Id}");
+                return BadRequest("Ya existe una tienda con ese Nombre");
             }
 
             dbContext.Add(tienda);

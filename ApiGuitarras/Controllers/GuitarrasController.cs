@@ -1,4 +1,8 @@
 ﻿using ApiGuitarras.Entidades;
+using ApiGuitarras.Migrations;
+using ApiGuitarras.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -6,17 +10,39 @@ namespace ApiGuitarras.Controllers
 {
     [ApiController]
     [Route("guitarras")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "EsAdmin")]
     public class GuitarrasController: ControllerBase
 
     {
         private readonly ApplicationDbContext dbContext;
+        private readonly IServiceCollection service;
+        private readonly ServiceTransient serviceTransient;
+        private readonly ServiceScoped serviceScoped;
+        private readonly ServiceSingleton serviceSingleton;
+        private readonly ILogger<GuitarrasController> logger;
 
-        public GuitarrasController(ApplicationDbContext dbContext)
+        private readonly IConfiguration configuration;
+
+        public GuitarrasController(ApplicationDbContext dbContext,
+            IService service,
+            ServiceTransient serviceTransient,
+            ServiceScoped serviceScoped,
+            ServiceSingleton serviceSingleton,
+            ILogger<GuitarrasController> logger,
+            IConfiguration configuration)
         {
             this.dbContext = dbContext;
+            this.service = (IServiceCollection)service;
+            this.serviceTransient = serviceTransient;
+            this.serviceScoped = serviceScoped;
+            this.serviceSingleton = serviceSingleton;
+            this.logger = logger;
+            this.configuration = configuration;
         }
+        
 
         [HttpGet("listadoGuitarras")]
+        [AllowAnonymous]
         public async Task<ActionResult<List<Guitarra>>> Get()
         {
             return await dbContext.Guitarras.Include(x => x.Tiendas).ToListAsync();
@@ -47,6 +73,12 @@ namespace ApiGuitarras.Controllers
         [HttpPost]
         public async Task<ActionResult> Post(Guitarra guitarra)
         {
+            var existeGuitarraMismoNombre = await dbContext.Tiendas.AnyAsync(x => x.Nombre == guitarra.Name);
+
+            if (existeGuitarraMismoNombre)
+            {
+                return BadRequest("Ya existe una guitarra con ese Nombre");
+            }
             dbContext.Add(guitarra);
             await dbContext.SaveChangesAsync();
             return Ok();
